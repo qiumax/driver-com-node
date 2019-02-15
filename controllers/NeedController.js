@@ -13,19 +13,27 @@ needController.getPrice = function (req,res) {
 	var account_id = req.session.account_id
 	var body = req.body
 	var price_type = body.price_type
+	var chaoxian_type = body.chaoxian_type
 	var price
 	Account.findById(account_id).populate('company').then(account=>{
 		console.log(account)
-		if(price_type == 'zhengce'){
-			price = account.company.price_zhengche
+		price = account.company.price_dun
+		if(price_type=="mass") {
+			price = account.company.price_dun
 		}
-		if(price_type == 'peizai')
-		{
-			price = account.company.price_peizai
+		if(price_type == 'zhengche' && chaoxian_type == '0'){
+			price = account.company.price_zhengche_notchao
 		}
-		if(price_type == 'chaoxian')
+		if(price_type == 'zhengche' && chaoxian_type == '1'){
+			price = account.company.price_zhengche_chao
+		}
+		if(price_type == 'peizai' && chaoxian_type == '0')
 		{
-			price = account.company.price_chaoxian
+			price = account.company.price_peizai_notchao
+		}
+		if(price_type == 'peizai' && chaoxian_type == '1')
+		{
+			price = account.company.price_peizai_chao
 		}
 		res.send({price:price})
 
@@ -37,19 +45,32 @@ needController.getNeedPrice = function (req, res) {
     
     var body = req.body
     var price_type = body.price_type
+	var chaoxian_type = body.chaoxian_type
 	var distance = body.distance
 
     
     var price
-    Account.findById(account_id, 'company').populate({path:'company',select:'price_dun price_fang'}).then(account=>{
-        console.log(account);
+    Account.findById(account_id, 'company').populate('company').then(account=>{
+        //console.log(account);
         
         if(price_type=="mass") {
             price = account.company.price_dun * body.mass * distance
         }
-        else if(price_type=="volume"){
-            price = account.company.price_fang * body.volume * distance
-        }
+	    if(price_type == 'zhengche' && chaoxian_type == '0'){
+		    price = account.company.price_zhengche_notchao * body.mass * distance
+	    }
+	    if(price_type == 'zhengche' && chaoxian_type == '1'){
+		    price = account.company.price_zhengche_chao * body.mass * distance
+	    }
+	    if(price_type == 'peizai' && chaoxian_type == '0')
+	    {
+		    price = account.company.price_peizai_notchao * body.mass * distance
+	    }
+	    if(price_type == 'peizai' && chaoxian_type == '1')
+	    {
+		    price = account.company.price_peizaichao * body.mass * distance
+	    }
+		console.log(price)
         res.send({
             price: price,
         })
@@ -75,6 +96,10 @@ needController.publishNeed = function (req, res) {
         from: JSON.parse(body.from),
         to: JSON.parse(body.to),
         time: body.time,
+	    arrive_time: body.arrive_time,
+	    youka: body.youka,
+	    peizai:body.peizai,
+	    chaoxian:body.chaoxian,
         cargo: body.cargo,
         price_type: body.price_type,
         mass: body.mass,
@@ -88,24 +113,24 @@ needController.publishNeed = function (req, res) {
     })
     
     need.save(function (err) {
-        if(err) throw err
-        
-        var needSchedule = new NeedSchedule({
-            need: need._id,
-            run_now: false,
-            run_time: new Date().getTime()/1000 + Config.need.schedule_time,
-            finished: false
-        })
-        
-        needSchedule.save(function (err) {
-            if(err) throw err
-            need.need_schedule = needSchedule._id
-            need.save(function (err) {
-                if(err) throw err
-                res.send(need)
-            })
-        })
-    })
+		if(err) throw err
+
+		var needSchedule = new NeedSchedule({
+			need: need._id,
+			run_now: false,
+			run_time: new Date().getTime()/1000 + Config.need.schedule_time,
+			finished: false
+		})
+
+		needSchedule.save(function (err) {
+			if(err) throw err
+			need.need_schedule = needSchedule._id
+			need.save(function (err) {
+				if(err) throw err
+				res.send(need)
+			})
+		})
+	})
 }
 
 

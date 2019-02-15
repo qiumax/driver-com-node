@@ -8,6 +8,8 @@ var Weixin = require("../models/Weixin");
 var ComUser = require("../models/ComUser");
 var Config = require("../config/Config");
 var Constant = require("../config/Constant")
+var fs = require('fs');
+var path = require('path');
 var wxController = {};
 
 wxController.getWxUserInfo = function(req, res) {
@@ -330,4 +332,28 @@ wxController.comment = function (req, res) {
 	)
 }
 
+
+wxController.order_wxcode = function (req,res) {
+	var order_id = req.body.order_id
+	var base_path = path.join(__dirname, '../public/img_tmp');
+	var order_path =  '/img_tmp/order_' + order_id + '.png';
+	fs.exists('./public'+order_path,function (exists) {
+		console.log(exists)
+		if(!exists)
+		{
+			console.log('not exist')
+			Weixin.getWXACode(order_id,function () {
+				res.send({ok:1})
+			})
+		}
+		else
+		{
+			res.send({ok:1})
+			console.log('exist')
+		}
+
+
+
+	})
+}
 module.exports = wxController;

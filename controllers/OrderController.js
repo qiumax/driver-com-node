@@ -2,6 +2,7 @@ var Order = require("../models/Order");
 var Driver = require("../models/Driver");
 var User = require("../models/User");
 var Need = require("../models/Need")
+var NeedSchedule = require("../models/NeedSchedule")
 var Weixin = require("../models/Weixin");
 var fs = require('fs');
 var path = require('path');
@@ -81,6 +82,42 @@ orderController.getOrderDetail = function (req,res) {
 		}
 
 	})
+}
+
+//取消运单
+orderController.cancleOrder = function (req,res) {
+	var order_id = req.body.order_id
+	Need.findOneAndUpdate(
+		{
+			_id:order_id,
+			closed:false
+		},
+		{
+			closed:true
+		},
+		{
+			new:true
+		},
+		function (err,need) {
+			if(need)
+			{
+				NeedSchedule.findByIdAndUpdate(
+					need.need_schedule,
+					{
+						finished:true
+					},
+					function (err,needschedule) {
+						if(err) throw err
+						res.send({ok:1})
+					}
+				)
+			}
+			else
+			{
+				res.send({ok:0})
+			}
+		}
+	)
 }
 
 module.exports = orderController

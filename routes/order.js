@@ -6,5 +6,5 @@ router.post('/getOrderList', orderController.getOrderList);
 
 router.post('/getOrderDetail', orderController.getOrderDetail)
 
-
+router.post('/cancleOrder',orderController.cancleOrder)
 module.exports = router;

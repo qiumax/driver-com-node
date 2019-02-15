@@ -22,6 +22,8 @@ router.post('/comment', wxController.comment);
 //我收的
 router.post('/myOrderList',wxController.myOrderList);
 
+router.post('/order_wxcode',wxController.order_wxcode);
+
 router.get('/test', function (req, res) {
     console.log("server 1");
     res.send("server 1")
